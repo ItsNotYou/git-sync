@@ -25,16 +25,24 @@ def aggressive_cleanup(path):
             pass
 
 
-def run_command(args, repo_dir):
-    print(">", " ".join(args))
-    process = subprocess.run(args, cwd=repo_dir)
+def run_command(args, repo_dir, log):
+    log.write("> " + " ".join(args) + "\n")
+    log.flush()
+    process = subprocess.run(args, cwd=repo_dir, stdout=log, stderr=log)
+    log.write("| Return code: " + str(process.returncode))
     if process.returncode != 0:
         raise IOError("Command failed")
 
 
-def report_error(repo, repo_dir):
+def report_error(repo, repo_dir, log):
+    print(f"Manual intervention required for {repo} in {repo_dir}, log below")
     print()
-    print(f"Manual intervention required for {repo} in {repo_dir}")
+
+    log.flush()
+    log.seek(0)
+
+    print(log.read())
+    print()
 
 
 if __name__ == "__main__":
@@ -47,17 +55,18 @@ if __name__ == "__main__":
 
     for repo in cfg["repositories"]:
         with tempfile.TemporaryDirectory(prefix="git-sync-") as repo_dir:
-            print(f"Syncing {repo['name']}, using directory {repo_dir}")
+            with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
+                print(f"Syncing {repo['name']}, using directory {repo_dir}, logging in {log.name}")
 
-            try:
-                # synchronize both repositories
-                run_command(["git", "clone", "--progress", repo["repo1"], "."], repo_dir)
-                run_command(["git", "remote", "add", "other", repo["repo2"]], repo_dir)
-                run_command(["git", "pull", "--progress", "other", "master"], repo_dir)
-                run_command(["git", "push", "--progress", "origin", "master"], repo_dir)
-                run_command(["git", "push", "--progress", "other", "master"], repo_dir)
-            except IOError:
-                # something went wrong, most probably a failed merge
-                report_error(repo['name'], repo_dir)
+                try:
+                    # synchronize both repositories
+                    run_command(["git", "clone", "--progress", repo["repo1"], "."], repo_dir, log)
+                    run_command(["git", "remote", "add", "other", repo["repo2"]], repo_dir, log)
+                    run_command(["git", "pull", "--progress", "other", "master"], repo_dir, log)
+                    run_command(["git", "push", "--progress", "origin", "master"], repo_dir, log)
+                    run_command(["git", "push", "--progress", "other", "master"], repo_dir, log)
+                except IOError:
+                    # a command went wrong, most probably a failed merge
+                    report_error(repo['name'], repo_dir, log)
 
-            aggressive_cleanup(repo_dir)
+                aggressive_cleanup(repo_dir)
