@@ -28,7 +28,13 @@ def aggressive_cleanup(path):
 def run_command(args, repo_dir):
     print(">", " ".join(args))
     process = subprocess.run(args, cwd=repo_dir)
-    print("Exit code", process.returncode)
+    if process.returncode != 0:
+        raise IOError("Command failed")
+
+
+def report_error(repo, repo_dir):
+    print()
+    print(f"Manual intervention required for {repo} in {repo_dir}")
 
 
 if __name__ == "__main__":
@@ -43,11 +49,15 @@ if __name__ == "__main__":
         with tempfile.TemporaryDirectory(prefix="git-sync-") as repo_dir:
             print(f"Syncing {repo['name']}, using directory {repo_dir}")
 
-            # synchronize both repositories
-            run_command(["git", "clone", "--progress", repo["repo1"], "."], repo_dir)
-            run_command(["git", "remote", "add", "other", repo["repo2"]], repo_dir)
-            run_command(["git", "pull", "--progress", "other", "master"], repo_dir)
-            run_command(["git", "push", "--progress", "origin", "master"], repo_dir)
-            run_command(["git", "push", "--progress", "other", "master"], repo_dir)
+            try:
+                # synchronize both repositories
+                run_command(["git", "clone", "--progress", repo["repo1"], "."], repo_dir)
+                run_command(["git", "remote", "add", "other", repo["repo2"]], repo_dir)
+                run_command(["git", "pull", "--progress", "other", "master"], repo_dir)
+                run_command(["git", "push", "--progress", "origin", "master"], repo_dir)
+                run_command(["git", "push", "--progress", "other", "master"], repo_dir)
+            except IOError:
+                # something went wrong, most probably a failed merge
+                report_error(repo['name'], repo_dir)
 
             aggressive_cleanup(repo_dir)
