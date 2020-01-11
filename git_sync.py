@@ -6,10 +6,23 @@ import tempfile
 import yaml
 
 
-def remove_readonly(func, path, _):
+def aggressive_cleanup(path):
+    """
+    Removes all contents of a given directory
+    """
+
     # Clear the readonly bit and reattempt the removal
-    os.chmod(path, stat.S_IWRITE)
-    func(path)
+    def remove_readonly(func, path, _):
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    # Try to shutil.rmtree() every item in the directory, even if it is not a directory
+    for file_or_dir in os.listdir(path):
+        try:
+            shutil.rmtree(f"{path}/{file_or_dir}", onerror=remove_readonly)
+        except OSError:
+            # Ignore the errors we can't fix
+            pass
 
 
 def run_command(args, repo_dir):
@@ -37,8 +50,4 @@ if __name__ == "__main__":
             run_command(["git", "push", "--progress", "origin", "master"], repo_dir)
             run_command(["git", "push", "--progress", "other", "master"], repo_dir)
 
-            for file_or_dir in os.listdir(repo_dir):
-                try:
-                    shutil.rmtree(f"{repo_dir}/{file_or_dir}", onerror=remove_readonly)
-                except OSError:
-                    pass
+            aggressive_cleanup(repo_dir)
