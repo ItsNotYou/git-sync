@@ -45,6 +45,22 @@ def report_error(repo, repo_dir, log):
     print()
 
 
+def sync_repositories(repo_dir, repo_name, url_1, url_2):
+    with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
+        print(f"Syncing {repo_name}, using directory {repo_dir}, logging in {log.name}")
+
+        try:
+            # synchronize both repositories
+            run_command(["git", "clone", "--progress", url_1, "."], repo_dir, log)
+            run_command(["git", "remote", "add", "other", url_2], repo_dir, log)
+            run_command(["git", "pull", "--progress", "other", "master"], repo_dir, log)
+            run_command(["git", "push", "--progress", "origin", "master"], repo_dir, log)
+            run_command(["git", "push", "--progress", "other", "master"], repo_dir, log)
+        except IOError:
+            # a command went wrong, most probably a failed merge
+            report_error(repo_name, repo_dir, log)
+
+
 if __name__ == "__main__":
     with open("config.yml", "r") as ymlfile:
         cfg = yaml.safe_load(ymlfile)
@@ -55,18 +71,7 @@ if __name__ == "__main__":
 
     for repo in cfg["repositories"]:
         with tempfile.TemporaryDirectory(prefix="git-sync-") as repo_dir:
-            with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
-                print(f"Syncing {repo['name']}, using directory {repo_dir}, logging in {log.name}")
+            sync_repositories(repo_dir, repo['name'], repo["repo1"], repo["repo2"])
 
-                try:
-                    # synchronize both repositories
-                    run_command(["git", "clone", "--progress", repo["repo1"], "."], repo_dir, log)
-                    run_command(["git", "remote", "add", "other", repo["repo2"]], repo_dir, log)
-                    run_command(["git", "pull", "--progress", "other", "master"], repo_dir, log)
-                    run_command(["git", "push", "--progress", "origin", "master"], repo_dir, log)
-                    run_command(["git", "push", "--progress", "other", "master"], repo_dir, log)
-                except IOError:
-                    # a command went wrong, most probably a failed merge
-                    report_error(repo['name'], repo_dir, log)
-
-                aggressive_cleanup(repo_dir)
+            # workaround for bug in TemporaryDirectory that was fixed in Python 3.9
+            aggressive_cleanup(repo_dir)
