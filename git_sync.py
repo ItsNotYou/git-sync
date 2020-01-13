@@ -65,10 +65,6 @@ if __name__ == "__main__":
     with open("config.yml", "r") as ymlfile:
         cfg = yaml.safe_load(ymlfile)
 
-    work_dir = cfg["work_directory"]
-    if not work_dir.endswith("/"):
-        work_dir += "/"
-
     for repo in cfg["repositories"]:
         with tempfile.TemporaryDirectory(prefix="git-sync-") as repo_dir:
             sync_repositories(repo_dir, repo['name'], repo["repo1"], repo["repo2"])

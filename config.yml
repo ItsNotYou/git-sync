@@ -1,4 +1,3 @@
-work_directory: ./tmp
 repositories:
   - name: dummy-for-git-sync
     repo1: https://gitup.uni-potsdam.de/CRC1294/Z03/dummy-for-git-sync.git
