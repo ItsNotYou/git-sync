@@ -2,6 +2,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import yaml
 
@@ -67,7 +68,10 @@ if __name__ == "__main__":
 
     for repo in cfg["repositories"]:
         with tempfile.TemporaryDirectory(prefix="git-sync-") as work_dir:
-            sync_repositories(work_dir, repo['name'], repo["repo1"], repo["repo2"])
+            try:
+                sync_repositories(work_dir, repo['name'], repo["repo1"], repo["repo2"])
+            except:
+                print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
 
             # workaround for bug in TemporaryDirectory that was fixed in Python 3.9
             aggressive_cleanup(work_dir)
