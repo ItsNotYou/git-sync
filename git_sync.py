@@ -45,20 +45,20 @@ def report_error(repo, repo_dir, log):
     print()
 
 
-def sync_repositories(repo_dir, repo_name, url_1, url_2):
+def sync_repositories(work_dir, repo_name, git_url_1, git_url_2):
     with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
-        print(f"Syncing {repo_name}, using directory {repo_dir}, logging in {log.name}")
+        print(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
 
         try:
             # synchronize both repositories
-            run_command(["git", "clone", "--progress", url_1, "."], repo_dir, log)
-            run_command(["git", "remote", "add", "other", url_2], repo_dir, log)
-            run_command(["git", "pull", "--progress", "other", "master"], repo_dir, log)
-            run_command(["git", "push", "--progress", "origin", "master"], repo_dir, log)
-            run_command(["git", "push", "--progress", "other", "master"], repo_dir, log)
+            run_command(["git", "clone", "--progress", git_url_1, "."], work_dir, log)
+            run_command(["git", "remote", "add", "other", git_url_2], work_dir, log)
+            run_command(["git", "pull", "--progress", "other", "master"], work_dir, log)
+            run_command(["git", "push", "--progress", "origin", "master"], work_dir, log)
+            run_command(["git", "push", "--progress", "other", "master"], work_dir, log)
         except IOError:
             # a command went wrong, most probably a failed merge
-            report_error(repo_name, repo_dir, log)
+            report_error(repo_name, work_dir, log)
 
 
 if __name__ == "__main__":
@@ -66,8 +66,8 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(ymlfile)
 
     for repo in cfg["repositories"]:
-        with tempfile.TemporaryDirectory(prefix="git-sync-") as repo_dir:
-            sync_repositories(repo_dir, repo['name'], repo["repo1"], repo["repo2"])
+        with tempfile.TemporaryDirectory(prefix="git-sync-") as work_dir:
+            sync_repositories(work_dir, repo['name'], repo["repo1"], repo["repo2"])
 
             # workaround for bug in TemporaryDirectory that was fixed in Python 3.9
-            aggressive_cleanup(repo_dir)
+            aggressive_cleanup(work_dir)
