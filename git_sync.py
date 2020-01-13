@@ -74,4 +74,5 @@ if __name__ == "__main__":
                 print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
 
             # workaround for bug in TemporaryDirectory that was fixed in Python 3.9
+            # see https://github.com/python/cpython/commit/e9b51c0ad81da1da11ae65840ac8b50a8521373c for details
             aggressive_cleanup(work_dir)
