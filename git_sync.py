@@ -72,17 +72,22 @@ def send_email(email_cfg, subject, body, log):
         s.quit()
 
 
-def sync_repositories(work_dir, repo_name, git_url_1, git_url_2, report_cfg):
+def sync_repositories(work_dir, repo_name, remotes, report_cfg):
     with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
         print(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
 
         try:
-            # synchronize both repositories
-            run_command(["git", "clone", "--progress", git_url_1, "."], work_dir, log)
-            run_command(["git", "remote", "add", "other", git_url_2], work_dir, log)
-            run_command(["git", "pull", "--progress", "other", "master"], work_dir, log)
-            run_command(["git", "push", "--progress", "origin", "master"], work_dir, log)
-            run_command(["git", "push", "--progress", "other", "master"], work_dir, log)
+            # create local repository
+            run_command(["git", "init"], work_dir, log)
+
+            # add and pull all remotes
+            for index, remote in enumerate(remotes):
+                run_command(["git", "remote", "add", str(index), remote["url"]], work_dir, log)
+                run_command(["git", "pull", "--progress", str(index), "master"], work_dir, log)
+
+            # push to all remotes
+            for index, remote in enumerate(remotes):
+                run_command(["git", "push", "--progress", str(index), "master"], work_dir, log)
         except IOError:
             # a command went wrong, most probably a failed merge
             log.flush()
@@ -102,7 +107,7 @@ if __name__ == "__main__":
     for repo in cfg["repositories"]:
         with tempfile.TemporaryDirectory(prefix="git-sync-") as work_dir:
             try:
-                sync_repositories(work_dir, repo['name'], repo["repo1"], repo["repo2"], report_cfg)
+                sync_repositories(work_dir, repo['name'], repo["remotes"], report_cfg)
             except:
                 print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
 
