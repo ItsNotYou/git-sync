@@ -82,11 +82,13 @@ def sync_repositories(work_dir, repo_name, remotes, report_cfg):
 
             # add and pull all remotes
             for index, remote in enumerate(remotes):
+                run_command(["git", "config", "credential.username", f"{remote['user']}"], work_dir, log)
                 run_command(["git", "remote", "add", str(index), remote["url"]], work_dir, log)
                 run_command(["git", "pull", "--progress", str(index), "master"], work_dir, log)
 
             # push to all remotes
             for index, remote in enumerate(remotes):
+                run_command(["git", "config", "credential.username", f"{remote['user']}"], work_dir, log)
                 run_command(["git", "push", "--progress", str(index), "master"], work_dir, log)
         except IOError:
             # a command went wrong, most probably a failed merge
