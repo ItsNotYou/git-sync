@@ -11,8 +11,11 @@ Step 1: Configure the repositories under `config.yml`
 email_credentials: ~/.email_credentials.yml
 repositories:
   - name: human_readable_name
-    repo1: https://path_to_first_repository.git
-    repo2: https://path_to_second_repository.git
+    remotes:
+    - url: https://path_to_first_repository.git
+      user: user@first_repository.com
+    - url: https://path_to_second_repository.git
+      user: user@second_repository.com
 ```
 
 Step 2: Configure the email credentials in `~/.email_credentials.yml` (the file `.email_credentials.yml` in your home directory).
@@ -37,7 +40,7 @@ $ git push http://example.com/repo.git
 [your credentials are used automatically]
 ```
 
-Install packages from `requirements.txt` and run the script.
+Step 4: Install packages from `requirements.txt` and run the script.
 ```
 pip install -r requirements.txt
 python git_sync.py
