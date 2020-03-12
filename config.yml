@@ -1,4 +1,5 @@
 email_credentials: /secret/.email_credentials.yml
+work_dir: /data
 repositories:
   - name: dummy-for-git-sync
     remotes:

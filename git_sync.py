@@ -76,11 +76,11 @@ def send_email(email_cfg, subject, body, log):
 
 
 def create_local_repository(work_dir, remotes, log):
+    os.makedirs(work_dir)
     run_command("git init", work_dir, log)
     for index, remote in enumerate(remotes):
         run_command(f"git config credential.username {remote['user']}", work_dir, log)
         run_command(f"git remote add {str(index)} {remote['url']}", work_dir, log)
-        run_command(f"git pull --progress {str(index)} master", work_dir, log)
 
 
 def push_pull_local_repository(work_dir, remotes, log):
@@ -100,7 +100,8 @@ def sync_repository(work_dir, repo_name, remotes, report_cfg):
         print(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
 
         try:
-            create_local_repository(work_dir, remotes, log)
+            if not os.path.exists(work_dir):
+                create_local_repository(work_dir, remotes, log)
             push_pull_local_repository(work_dir, remotes, log)
         except IOError:
             # a command went wrong, most probably a failed merge
@@ -109,17 +110,12 @@ def sync_repository(work_dir, repo_name, remotes, report_cfg):
             report_error(repo_name, work_dir, log, report_cfg)
 
 
-def sync_repositories(repositories_cfg, report_cfg):
+def sync_repositories(work_dir, repositories_cfg, report_cfg):
     for repo in repositories_cfg:
-        with tempfile.TemporaryDirectory(prefix="git-sync-") as work_dir:
-            try:
-                sync_repository(work_dir, repo['name'], repo["remotes"], report_cfg)
-            except:
-                print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
-
-            # workaround for bug in TemporaryDirectory that was fixed in Python 3.9
-            # see https://github.com/python/cpython/commit/e9b51c0ad81da1da11ae65840ac8b50a8521373c for details
-            aggressive_cleanup(work_dir)
+        try:
+            sync_repository(f"{work_dir}/{repo['name']}", repo['name'], repo["remotes"], report_cfg)
+        except:
+            print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
 
 
 if __name__ == "__main__":
@@ -131,4 +127,4 @@ if __name__ == "__main__":
     with open(os.path.expanduser(cfg["email_credentials"]), "r") as credentials_file:
         report_cfg = yaml.safe_load(credentials_file)
 
-    sync_repositories(cfg["repositories"], report_cfg)
+    sync_repositories(cfg["work_dir"], cfg["repositories"], report_cfg)
