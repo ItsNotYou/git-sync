@@ -17,6 +17,6 @@ RUN git config --global credential.helper store \
 
 # Copy everything else
 COPY git_sync.py ./
-COPY config.yml ./
+COPY config.yml /config/
 
 CMD ["python", "git_sync.py"]

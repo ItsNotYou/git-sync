@@ -120,7 +120,7 @@ def sync_repositories(work_dir, repositories_cfg, report_cfg):
 
 if __name__ == "__main__":
     # load basic configuration
-    with open("config.yml", "r") as yml_file:
+    with open("/config/config.yml", "r") as yml_file:
         cfg = yaml.safe_load(yml_file)
 
     # load error report credentials
