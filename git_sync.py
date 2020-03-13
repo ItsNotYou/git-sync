@@ -1,15 +1,11 @@
 import os
-import shutil
-import smtplib
-import stat
 import subprocess
 import sys
 import tempfile
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 import yaml
+
+from send_email import send_email
 
 
 def run_command(args, repo_dir, log):
@@ -30,30 +26,6 @@ def report_error(repo, repo_dir, log, report_cfg):
     subject = f"Error during git-sync for {repo}"
     body = f"Manual intervention required for {repo}. See the attached log for details."
     send_email(report_cfg, subject, body, log)
-
-
-def send_email(email_cfg, subject, body, log):
-    # compose email
-    msg = MIMEMultipart()
-    msg['From'] = email_cfg["from"]
-    msg['To'] = email_cfg["to"]
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    # set attachment
-    p = MIMEBase('text', 'plain')
-    p.set_payload(log.read())
-    p.add_header('Content-Disposition', f"attachment; filename={os.path.basename(log.name)}")
-    msg.attach(p)
-
-    # create SMTP session
-    s = smtplib.SMTP(email_cfg["host"], email_cfg["port"])
-    try:
-        s.starttls()
-        s.login(email_cfg["user"], email_cfg["password"])
-        s.sendmail(email_cfg["from"], email_cfg["to"], msg.as_string())
-    finally:
-        s.quit()
 
 
 def create_local_repository(work_dir, remotes, log):
@@ -104,8 +76,4 @@ if __name__ == "__main__":
     with open("config.yml", "r") as yml_file:
         cfg = yaml.safe_load(yml_file)
 
-    # load error report credentials
-    with open(os.path.expanduser(cfg["email_credentials"]), "r") as credentials_file:
-        report_cfg = yaml.safe_load(credentials_file)
-
-    sync_repositories(cfg["work_dir"], cfg["repositories"], report_cfg)
+    sync_repositories(cfg["work_dir"], cfg["repositories"], cfg["email_credentials"])

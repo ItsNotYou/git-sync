@@ -12,9 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt -q
 # Make sure that your .git-credentials only use LF as linebreaks, otherwise your credentials will not be found by git!
 RUN git config --global credential.helper store \
     && mkdir /secret \
-    && ln -s /secret/.git-credentials ~/.git-credentials
+    && ln -s /secret/.git-credentials ~/.git-credentials \
+    && mkdir /data
 
 # Copy everything else
 COPY git_sync.py ./
+COPY send_email.py ./
 
 CMD ["python", "git_sync.py"]
