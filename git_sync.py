@@ -12,25 +12,6 @@ from email.mime.text import MIMEText
 import yaml
 
 
-def aggressive_cleanup(path):
-    """
-    Removes all contents of a given directory
-    """
-
-    # Clear the readonly bit and reattempt the removal
-    def remove_readonly(func, path, _):
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
-
-    # Try to shutil.rmtree() every item in the directory, even if it is not a directory
-    for file_or_dir in os.listdir(path):
-        try:
-            shutil.rmtree(f"{path}/{file_or_dir}", onerror=remove_readonly)
-        except OSError:
-            # Ignore the errors we can't fix
-            pass
-
-
 def run_command(args, repo_dir, log):
     if isinstance(args, str):
         args = args.split(" ")
