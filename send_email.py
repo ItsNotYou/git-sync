@@ -7,11 +7,21 @@ from email.mime.text import MIMEText
 import yaml
 
 
-def send_email(credentials_path, subject, body, log):
-    # load error report credentials
-    with open(os.path.expanduser(credentials_path), "r") as credentials_file:
-        email_cfg = yaml.safe_load(credentials_file)
+def send_email(email_cfg, subject, body, log):
+    if "path" in email_cfg:
+        # load separate error report credentials
+        with open(os.path.expanduser(email_cfg["path"]), "r") as credentials_file:
+            email_cfg = yaml.safe_load(credentials_file)
+        use_sendmail(email_cfg, subject, body, log)
+    elif "to" in email_cfg and "use_cmd" in email_cfg and email_cfg["use_cmd"]:
+        # use mail on command line
+        use_snail(subject, body, log, email_cfg["to"])
+    else:
+        # invalid configuration
+        print("No valid email configuration found")
 
+
+def use_sendmail(email_cfg, subject, body, log):
     # compose email
     msg = MIMEMultipart()
     msg['From'] = email_cfg["from"]
@@ -33,3 +43,9 @@ def send_email(credentials_path, subject, body, log):
         s.sendmail(email_cfg["from"], email_cfg["to"], msg.as_string())
     finally:
         s.quit()
+
+
+def use_snail(subject, body, log, to):
+    process = os.subprocess.run(["mail", "-s", subject, "-a", log, to], input=body)
+    if process.returncode != 0:
+        print(f"Sending mail via command line failed, error code {process.returncode}")
