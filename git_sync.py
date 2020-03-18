@@ -38,14 +38,21 @@ def create_local_repository(work_dir, remotes, log):
 
 def push_pull_local_repository(work_dir, remotes, log):
     # pull from all remotes
+    pull_failed = False
     for index, remote in enumerate(remotes):
         run_command(f"git config credential.username {remote['user']}", work_dir, log)
-        run_command(f"git pull --progress {str(index)} master", work_dir, log)
+        try:
+            run_command(f"git pull --progress {str(index)} master", work_dir, log)
+        except IOError:
+            pull_failed = True
 
     # push to all remotes
     for index, remote in enumerate(remotes):
         run_command(f"git config credential.username {remote['user']}", work_dir, log)
         run_command(f"git push --progress {str(index)} master", work_dir, log)
+
+    if pull_failed:
+        raise IOError("A pull failed")
 
 
 def sync_repository(work_dir, repo_name, remotes, report_cfg):
