@@ -47,6 +47,6 @@ def use_sendmail(email_cfg, subject, body, log):
 
 
 def use_snail(subject, body, log, to):
-    process = os.subprocess.run(["mail", "-s", subject, "-a", log.name, to], input=body)
+    process = subprocess.run(["mail", "-s", subject, "-a", log.name, to], input=body)
     if process.returncode != 0:
         print(f"Sending mail via command line failed, error code {process.returncode}")
