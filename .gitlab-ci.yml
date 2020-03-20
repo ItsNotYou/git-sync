@@ -1,0 +1,13 @@
+image: docker:19.03.5
+
+variables:
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+
+services:
+  - docker:19.03.5-dind
+
+build image:
+  stage: build
+  script:
+    - docker build -t git-sync:debug .
