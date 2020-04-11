@@ -29,7 +29,7 @@ def report_error(repo, repo_dir, log, report_cfg):
 
 
 def create_local_repository(work_dir, remotes, log):
-    os.makedirs(work_dir)
+    os.makedirs(work_dir, exist_ok=True)
     run_command("git init", work_dir, log)
     for index, remote in enumerate(remotes):
         run_command(f"git config credential.username {remote['user']}", work_dir, log)
@@ -60,8 +60,12 @@ def sync_repository(work_dir, repo_name, remotes, report_cfg):
         print(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
 
         try:
-            if not os.path.exists(work_dir):
-                create_local_repository(work_dir, remotes, log)
+            # silently create repository if it doesn't already exist
+            create_local_repository(work_dir, remotes, log)
+        except IOError:
+            pass
+
+        try:
             push_pull_local_repository(work_dir, remotes, log)
         except IOError:
             # a command went wrong, most probably a failed merge
