@@ -5,7 +5,7 @@ import tempfile
 
 import yaml
 
-from send_email import send_email
+from gitsync.reporting import send_email
 
 
 def run_command(args, repo_dir, log):
