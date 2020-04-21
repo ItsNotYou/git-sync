@@ -12,17 +12,16 @@ def report_error(repo, repo_dir, log, report_cfg):
     send_email(report_cfg, subject, body, log)
 
 
-def sync_repositories(work_dir, repositories_cfg, report_cfg):
-    for repo in repositories_cfg:
-        try:
-            sync_repository(f"{work_dir}/{repo['name']}", repo['name'], repo["remotes"], report_cfg, report_error)
-        except:
-            print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
-
-
 if __name__ == "__main__":
     # load basic configuration
     with open("config.yml", "r") as yml_file:
         cfg = yaml.safe_load(yml_file)
 
-    sync_repositories(cfg["work_dir"], cfg["repositories"], cfg["email_credentials"])
+    # synchronize repositories
+    work_dir = cfg["work_dir"]
+    report_cfg = cfg["email_credentials"]
+    for repo in cfg["repositories"]:
+        try:
+            sync_repository(f"{work_dir}/{repo['name']}", repo['name'], repo["remotes"], report_cfg, report_error)
+        except:
+            print("Unhandled error occurred while synchronizing", repo['name'], sys.exc_info()[0])
