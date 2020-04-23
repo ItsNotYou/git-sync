@@ -1,7 +1,17 @@
 import os
 import subprocess
-import sys
 import tempfile
+
+
+class GitError(Exception):
+
+    def __init__(self, repo_name, repo_dir, log):
+        self.repo_name = repo_name
+        self.repo_dir = repo_dir
+        self.log = log
+
+    def __str__(self):
+        return f"GitError for {self.repo_name} in {self.repo_dir}, see log at {self.log.name}"
 
 
 def run_command(args, repo_dir, log):
@@ -43,7 +53,7 @@ def push_pull_local_repository(work_dir, remotes, log):
         raise IOError("A pull failed")
 
 
-def sync_repository(work_dir, repo_name, remotes, report_cfg, report_error):
+def sync_repository(work_dir, repo_name, remotes):
     with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
         print(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
 
@@ -55,4 +65,4 @@ def sync_repository(work_dir, repo_name, remotes, report_cfg, report_error):
             # a command went wrong, most probably a failed merge
             log.flush()
             log.seek(0)
-            report_error(repo_name, work_dir, log, report_cfg)
+            raise GitError(repo_name, work_dir, log)
