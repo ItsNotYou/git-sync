@@ -54,8 +54,9 @@ def push_pull_local_repository(work_dir, remotes, log):
 
 
 def sync_repository(work_dir, repo_name, remotes):
+    logger = logging.getLogger(__name__)
     with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
-        print(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
+        logger.info(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
 
         try:
             if not os.path.exists(work_dir):
