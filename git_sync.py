@@ -1,3 +1,5 @@
+import argparse
+
 import yaml
 import sys
 
@@ -14,14 +16,22 @@ def report_error(repo, repo_dir, log, report_cfg):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.")
+    parser.add_argument("repositories", nargs="+", help="files that link to remotes", type=argparse.FileType("r"))
+    args = parser.parse_args()
+
+    # load configs and add all contained repositories
+    repositories = [repository for fp in args.repositories for repository in yaml.safe_load(fp)["repositories"]]
+
     # load basic configuration
     with open("config.yml", "r") as yml_file:
         cfg = yaml.safe_load(yml_file)
 
-    # synchronize repositories
     work_dir = cfg["work_dir"]
     report_cfg = cfg["email_credentials"]
-    for repo in cfg["repositories"]:
+
+    # synchronize repositories
+    for repo in repositories:
         try:
             sync_repository(f"{work_dir}/{repo['name']}", repo['name'], repo["remotes"])
         except GitError as err:
