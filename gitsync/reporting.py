@@ -1,32 +1,28 @@
+import logging
 import os
-import subprocess
 import smtplib
+import subprocess
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import yaml
 
+def send_email(email_cfg, subject="", body="", log=None):
+    logger = logging.getLogger(__name__)
 
-def send_email(email_cfg, subject, body, log):
-    if "path" in email_cfg:
-        # load separate error report credentials
-        with open(os.path.expanduser(email_cfg["path"]), "r") as credentials_file:
-            email_cfg = yaml.safe_load(credentials_file)
-        use_sendmail(email_cfg, subject, body, log)
-    elif "to" in email_cfg and "use_cmd" in email_cfg and email_cfg["use_cmd"]:
-        # use mail on command line
+    if email_cfg.use_mail:
         use_snail(subject, body, log, email_cfg["to"])
+    elif email_cfg.use_smtp:
+        use_sendmail(email_cfg["email_credentials"], subject, body, log, email_cfg["to"])
     else:
-        # invalid configuration
-        print("No valid email configuration found")
+        logger.info("No email reporting selected")
 
 
-def use_sendmail(email_cfg, subject, body, log):
+def use_sendmail(email_cfg, subject, body, log, to):
     # compose email
     msg = MIMEMultipart()
     msg['From'] = email_cfg["from"]
-    msg['To'] = email_cfg["to"]
+    msg['To'] = to
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
 
@@ -49,4 +45,5 @@ def use_sendmail(email_cfg, subject, body, log):
 def use_snail(subject, body, log, to):
     process = subprocess.run(["mail", "-s", subject, "-a", log.name, to], input=body)
     if process.returncode != 0:
-        print(f"Sending mail via command line failed, error code {process.returncode}")
+        logger = logging.getLogger(__name__)
+        logger.error(f"Sending mail via command line failed, error code {process.returncode}")
