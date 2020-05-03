@@ -20,4 +20,4 @@ RUN git config --global credential.helper store \
 COPY git_sync.py ./
 COPY gitsync ./gitsync
 
-CMD python git_sync.py --log INFO --workdir /data --use_smtp --to hgessner@uni-potsdam.de /config/*
+CMD python git_sync.py --log INFO --workdir /data --use_smtp --smtp_config /secret/.email_credentials.yml --to hgessner@uni-potsdam.de /config/*
