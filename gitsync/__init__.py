@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import tempfile
@@ -5,16 +6,15 @@ import tempfile
 
 class GitError(Exception):
 
-    def __init__(self, repo_name, repo_dir, log):
-        self.repo_name = repo_name
+    def __init__(self, repo_dir, log):
         self.repo_dir = repo_dir
         self.log = log
 
     def __str__(self):
-        return f"GitError for {self.repo_name} in {self.repo_dir}, see log at {self.log.name}"
+        return f"GitError for {self.repo_dir}, see log at {self.log.name}"
 
 
-def run_command(args, repo_dir, log):
+def __run_command(args, repo_dir, log):
     if isinstance(args, str):
         args = args.split(" ")
 
@@ -26,44 +26,61 @@ def run_command(args, repo_dir, log):
         raise IOError("Command failed")
 
 
-def create_local_repository(work_dir, remotes, log):
-    os.makedirs(work_dir)
-    run_command("git init", work_dir, log)
-    for index, remote in enumerate(remotes):
-        run_command(f"git config credential.username {remote['user']}", work_dir, log)
-        run_command(f"git remote add {str(index)} {remote['url']}", work_dir, log)
+def git_prepare_repository(remotes, work_dir, log):
+    try:
+        os.makedirs(work_dir, exist_ok=False)
+        __run_command("git init", work_dir, log)
+        return all([git_remote_add(index, remote, work_dir, log) for index, remote in enumerate(remotes)])
+    except FileExistsError:
+        return True
+    except IOError:
+        return False
 
 
-def push_pull_local_repository(work_dir, remotes, log):
-    # pull from all remotes
-    pull_failed = False
-    for index, remote in enumerate(remotes):
-        run_command(f"git config credential.username {remote['user']}", work_dir, log)
-        try:
-            run_command(f"git pull --progress {str(index)} master", work_dir, log)
-        except IOError:
-            pull_failed = True
-
-    # push to all remotes
-    for index, remote in enumerate(remotes):
-        run_command(f"git config credential.username {remote['user']}", work_dir, log)
-        run_command(f"git push --progress {str(index)} master", work_dir, log)
-
-    if pull_failed:
-        raise IOError("A pull failed")
+def git_remote_add(index, remote, work_dir, log):
+    try:
+        __run_command(f"git config credential.username {remote['user']}", work_dir, log)
+        __run_command(f"git remote add {str(index)} {remote['url']}", work_dir, log)
+        return True
+    except IOError:
+        return False
 
 
-def sync_repository(work_dir, repo_name, remotes):
+def git_pull(index, remote, work_dir, log):
+    try:
+        __run_command(f"git config credential.username {remote['user']}", work_dir, log)
+        __run_command(f"git pull --progress {str(index)} master", work_dir, log)
+        return True
+    except IOError:
+        return False
+
+
+def git_push(index, remote, work_dir, log):
+    try:
+        __run_command(f"git config credential.username {remote['user']}", work_dir, log)
+        __run_command(f"git push --progress {str(index)} master", work_dir, log)
+        return True
+    except IOError:
+        return False
+
+
+def sync_repository(remotes, work_dir):
     logger = logging.getLogger(__name__)
     with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
-        logger.info(f"Syncing {repo_name}, using directory {work_dir}, logging in {log.name}")
+        logger.info(f"Syncing {work_dir}, logging in {log.name}")
 
-        try:
-            if not os.path.exists(work_dir):
-                create_local_repository(work_dir, remotes, log)
-            push_pull_local_repository(work_dir, remotes, log)
-        except IOError:
-            # a command went wrong, most probably a failed merge
+        # create the local repository if necessary
+        prepare_succeeded = git_prepare_repository(remotes, work_dir, log)
+
+        # pull from all remotes
+        # a pull could fail if a remote is empty, so we have to continue with the other remotes
+        pull_succeeded = [git_pull(index, remote, work_dir, log) for index, remote in enumerate(remotes)]
+
+        # push to all remotes
+        push_succeeded = [git_push(index, remote, work_dir, log) for index, remote in enumerate(remotes)]
+
+        # check whether a command went wrong (most probably a failed merge)
+        if not prepare_succeeded or not all(pull_succeeded) or not all(push_succeeded):
             log.flush()
             log.seek(0)
-            raise GitError(repo_name, work_dir, log)
+            raise GitError(work_dir, log)
