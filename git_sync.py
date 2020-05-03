@@ -59,9 +59,9 @@ if __name__ == "__main__":
         try:
             sync_repository(repo["remotes"], f"{args.workdir}/{repo['name']}")
         except GitError as err:
-            logger.warning(f"Manual intervention required for {err.repo_dir}, log available at {err.log.name}")
+            logger.warning(f"Manual intervention required for {err.repo_dir}, log available at {err.log_path}")
             error_text.append(f"Manual intervention required for {err.repo_dir}. See the attached log for details.")
-            error_text.append(err.log.read())
+            error_text.append(err.log_content)
 
     # report errors via mail if necessary
     if error_text and (args.use_mail or args.use_smtp):

@@ -6,12 +6,13 @@ import tempfile
 
 class GitError(Exception):
 
-    def __init__(self, repo_dir, log):
+    def __init__(self, repo_dir, log_path, log_content):
         self.repo_dir = repo_dir
-        self.log = log
+        self.log_path = log_path
+        self.log_content = log_content
 
     def __str__(self):
-        return f"GitError for {self.repo_dir}, see log at {self.log.name}"
+        return f"GitError for {self.repo_dir}, see log at {self.log_path}"
 
 
 def __run_command(args, repo_dir, log):
@@ -83,4 +84,4 @@ def sync_repository(remotes, work_dir):
         if not prepare_succeeded or not all(pull_succeeded) or not all(push_succeeded):
             log.flush()
             log.seek(0)
-            raise GitError(work_dir, log)
+            raise GitError(work_dir, log.name, log.read())
