@@ -13,10 +13,11 @@ RUN pip install --no-cache-dir -r requirements.txt -q
 RUN git config --global credential.helper store \
     && mkdir /secret \
     && ln -s /secret/.git-credentials ~/.git-credentials \
-    && mkdir /data
+    && mkdir /data \
+    && mkdir /config
 
 # Copy everything else
 COPY git_sync.py ./
 COPY gitsync ./gitsync
 
-CMD ["python", "git_sync.py"]
+CMD python git_sync.py --log INFO --workdir /data --use_smtp --to hgessner@uni-potsdam.de /config/*
