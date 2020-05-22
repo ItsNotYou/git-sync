@@ -19,10 +19,6 @@ def parse_arguments():
     #
     # Es wäre praktisch, für alle üblichen Parameter eine Kurzform zu haben.
     #
-    # -v      Verbose mode.  Causes ssh to print debugging messages about its progress.  This is
-    #              helpful in debugging connection, authentication, and configuration problems.  Multiple
-    #              -v options increase the verbosity.  The maximum is 3.
-    #
     # Hier ist die Frage, ob du eine Logfile verwenden willst, an welche du hinten anhängst:
     #     -l --log FILE
     # Das sorgt dafür, dass man auch ohne mail die Ausgaben bekommt
@@ -41,8 +37,9 @@ def parse_arguments():
     #     repository
     # draus machen. (Ist Repository der richtige Begriff? Oder ist es eher der Pfad in einem Repository bzw. URL, die du angibst?)
     parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.")
-    parser.add_argument("--log", choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], default="WARNING",
-                        help="set log output level, default is 'WARNING'")
+    parser.add_argument("--verbose", "-v", action="count", default=0,
+                        help=("verbose mode prints progress messages. "
+                              "Multiple -v options increase the verbosity, the maximum is 3"))
     parser.add_argument("--workdir", "-w", metavar="WORKING_DIRECTORY", default=path.expanduser("~/git-sync"),
                         help="directory where the local Git repositories are stored, default is '~/git-sync'")
     parser.add_argument("repositories", nargs="+", type=argparse.FileType("r"),
@@ -70,6 +67,12 @@ def parse_arguments():
     if args.use_smtp and not args.smtp_config:
         raise argparse.ArgumentTypeError("--use_smtp requires --smtp_config argument")
 
+    # select appropriate log level
+    if args.verbose > 3:
+        parser.error("verbose: maximum verbosity is 3")
+    else:
+        args.loglevel = ["ERROR", "WARNING", "INFO", "DEBUG"][args.verbose]
+
     return args
 
 
@@ -77,7 +80,7 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     # set logging level
-    logging.basicConfig(level=args.log)
+    logging.basicConfig(level=args.loglevel)
     logger = logging.getLogger(__name__)
 
     # load configs and add all contained repositories
