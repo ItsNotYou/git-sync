@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os.path as path
 import sys
 
 import yaml
@@ -22,11 +23,6 @@ def parse_arguments():
     #              helpful in debugging connection, authentication, and configuration problems.  Multiple
     #              -v options increase the verbosity.  The maximum is 3.
     #
-    # Bei --workdir meinst du mit 'data' einen relativen Pfad, oder?
-    # Hier wäre vielleicht besser, den Pfade nicht vom aktuellen Ort abhängig zu machen und dem Ordner einen klarer zuordenbaren Namen zu geben, z.B. '~/git_sync'.
-    # Als Kurzfassung kannst du hier z.B. -w nehmen.
-    #    -w --workdir
-    #
     # Hier ist die Frage, ob du eine Logfile verwenden willst, an welche du hinten anhängst:
     #     -l --log FILE
     # Das sorgt dafür, dass man auch ohne mail die Ausgaben bekommt
@@ -47,8 +43,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.")
     parser.add_argument("--log", choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], default="WARNING",
                         help="set log output level, default is 'WARNING'")
-    parser.add_argument("--workdir", metavar="WORKING_DIRECTORY", default="data",
-                        help="directory where the local Git repositories are stored, default is 'data'")
+    parser.add_argument("--workdir", "-w", metavar="WORKING_DIRECTORY", default=path.expanduser("~/git-sync"),
+                        help="directory where the local Git repositories are stored, default is '~/git-sync'")
     parser.add_argument("repositories", nargs="+", type=argparse.FileType("r"),
                         help="remotes config files")
 
