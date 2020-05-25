@@ -13,17 +13,9 @@ def parse_arguments():
     # prepare command line parser
     # Christians Vorschläge:
     #
-    # Es wäre praktisch, für alle üblichen Parameter eine Kurzform zu haben.
-    #
     # Hier ist die Frage, ob du eine Logfile verwenden willst, an welche du hinten anhängst:
     #     -l --log FILE
     # Das sorgt dafür, dass man auch ohne mail die Ausgaben bekommt
-    #
-    # Der Parameter "repositories" ist nicht genau genug beschrieben,
-    # hier ist mir unklar, wie der Pfad auszusehen hat und warum "repositories" mit -es (Mehrzahl) in den Argumenten mehrfach vorkommt.
-    # Ich würde hier einfach
-    #     repository
-    # draus machen. (Ist Repository der richtige Begriff? Oder ist es eher der Pfad in einem Repository bzw. URL, die du angibst?)
     parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.",
                                      epilog=("usage examples:\n"
                                              "  python git_sync.py -m hgessner@uni-potsdam.de config.yml\n"
@@ -57,8 +49,9 @@ def parse_arguments():
     parser.add_argument("--workdir", "-w", metavar="WORKING_DIRECTORY", default=path.expanduser("~/git-sync"),
                         help="directory where the local Git repositories are stored, default is '~/git-sync'")
     parser.add_argument("repositories", nargs="+", type=argparse.FileType("r"),
-                        help=("configuration files with Git remote repositories. Each configuration file is a YAML "
-                              "file. For more details on the config file structure, see the usage examples below"))
+                        help=("one or more configuration files with Git remote repositories. Each configuration file "
+                              "is a YAML file. For more details on the config file structure, see the usage examples "
+                              "below"))
 
     # command line parser for email reporting
     parser.add_argument("--mail", "-m", metavar="TO",
