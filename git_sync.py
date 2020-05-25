@@ -24,23 +24,51 @@ def parse_arguments():
     # Ich würde hier einfach
     #     repository
     # draus machen. (Ist Repository der richtige Begriff? Oder ist es eher der Pfad in einem Repository bzw. URL, die du angibst?)
-    parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.")
+    parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.",
+                                     epilog=("usage examples:\n"
+                                             "  python git_sync.py -m hgessner@uni-potsdam.de config.yml\n"
+                                             "  python git_sync.py -m hgessner@uni-potsdam.de -s smtp.yml config.yml\n"
+                                             "  python git_sync.py -vvv -w /data config/*\n"
+                                             "  \n"
+                                             "  The above examples all use this config.yml structure:\n"
+                                             "  \n"
+                                             "  repositories:\n"
+                                             "  - name: some-repository\n"
+                                             "    remotes:\n"
+                                             "    - url: https://github.com/ItsNotYou/git-sync.git\n"
+                                             "      user: henge01@gmail.com\n"
+                                             "    - url: https://gitup.uni-potsdam.de/CRC1294/Z03/git-sync.git\n"
+                                             "      user: hgessner@uni-potsdam.de\n"
+                                             "    - [...]\n"
+                                             "  - name: some-other-repository\n"
+                                             "    - [...]\n"
+                                             "  \n"
+                                             "  One example uses the following smtp.yml structure:\n"
+                                             "  \n"
+                                             "  from: sender@uni-potsdam.de\n"
+                                             "  host: smtp.uni-potsdam.de\n"
+                                             "  port: 587\n"
+                                             "  user: sender\n"
+                                             "  password: sender_password"),
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--verbose", "-v", action="count", default=0,
                         help=("verbose mode prints progress messages. "
                               "Multiple -v options increase the verbosity, the maximum is 3"))
     parser.add_argument("--workdir", "-w", metavar="WORKING_DIRECTORY", default=path.expanduser("~/git-sync"),
                         help="directory where the local Git repositories are stored, default is '~/git-sync'")
     parser.add_argument("repositories", nargs="+", type=argparse.FileType("r"),
-                        help="remotes config files")
+                        help=("configuration files with Git remote repositories. Each configuration file is a YAML "
+                              "file. For more details on the config file structure, see the usage examples below"))
 
     # command line parser for email reporting
     parser.add_argument("--mail", "-m", metavar="TO",
                         help=("send error report via system 'mail' command to the specified TO address. "
                               "For connecting to an SMTP server, see --smtp"))
-    parser.add_argument("--smtp", "-s", metavar="CONFIG", type=argparse.FileType("r"),
-                        help=("connect to an SMTP server as specified in the CONFIG file instead of using "
-                              "the system 'mail' command. Requires --mail. The CONFIG file must contain "
-                              "the SMTP server name, port and sender address"))
+    parser.add_argument("--smtp", "-s", metavar="SMTP", type=argparse.FileType("r"),
+                        help=("connect to an SMTP server as specified in the SMTP file instead of using "
+                              "the system 'mail' command. Requires --mail. The SMTP file must contain "
+                              "the SMTP server name, port and sender address. For more details on the SMTP file "
+                              "structure, see the usage examples below"))
 
     args = parser.parse_args()
 
