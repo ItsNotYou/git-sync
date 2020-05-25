@@ -5,14 +5,10 @@ from email.message import EmailMessage
 
 
 def send_email(email_cfg, subject="", body=""):
-    logger = logging.getLogger(__name__)
-
-    if email_cfg.use_mail:
-        use_snail(subject, body, email_cfg["to"])
-    elif email_cfg.use_smtp:
+    if email_cfg["email_credentials"]:
         use_sendmail(email_cfg["email_credentials"], subject, body, email_cfg["to"])
     else:
-        logger.info("No email reporting selected")
+        use_mail(subject, body, email_cfg["to"])
 
 
 def use_sendmail(email_cfg, subject, body, to):
@@ -33,8 +29,11 @@ def use_sendmail(email_cfg, subject, body, to):
         s.quit()
 
 
-def use_snail(subject, body, to):
-    process = subprocess.run(["mail", "-s", subject, to], input=body)
-    if process.returncode != 0:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Sending mail via command line failed, error code {process.returncode}")
+def use_mail(subject, body, to):
+    logger = logging.getLogger(__name__)
+    try:
+        process = subprocess.run(["mail", "-s", subject, to], input=body)
+        if process.returncode != 0:
+            logger.error(f"Sending mail via command line failed, error code: {process.returncode}")
+    except FileNotFoundError as err:
+        logger.error(f"Sending mail via command line failed, error: {err}")

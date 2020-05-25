@@ -13,23 +13,11 @@ def parse_arguments():
     # prepare command line parser
     # Christians Vorschläge:
     #
-    # - usage: git_sync.py [--verbose] [--workdir WORKING_DIRECTORY] [--mail TO [--smtp CONFIG]] repository [repository ...]
-    #        git_sync.py [--help]
-    # Hier sieht man, dass --smtp nur bei --mail verwendet werden kann.
-    #
     # Es wäre praktisch, für alle üblichen Parameter eine Kurzform zu haben.
     #
     # Hier ist die Frage, ob du eine Logfile verwenden willst, an welche du hinten anhängst:
     #     -l --log FILE
     # Das sorgt dafür, dass man auch ohne mail die Ausgaben bekommt
-    #
-    # Ich würde statt --use_mail und --to einfach nur:
-    #     -m --mail TO               send error report to recipient TO using 'mail' command
-    # verwenden, du weißt dann ja, dass eine Email versendet werden soll und per default 'mail' annehmen.
-    # Zusätzlich würde ich den Parameter:
-    #     -s --smtp CONFIG                  send mail using 'smtp' instead of 'mail', requires --mail
-    # direkt ergänzend verwenden, um den default von 'mail' auf 'smtp' zu ändern.
-    # Du kannst sogar überlegen, ob du die "TO" email hier ebenfalls ablegst, dann spart man sich den --mail parameter.
     #
     # Der Parameter "repositories" ist nicht genau genug beschrieben,
     # hier ist mir unklar, wie der Pfad auszusehen hat und warum "repositories" mit -es (Mehrzahl) in den Argumenten mehrfach vorkommt.
@@ -46,26 +34,19 @@ def parse_arguments():
                         help="remotes config files")
 
     # command line parser for email reporting
-    mail_parser = parser.add_argument_group("email reporting", "sending reports via email is optional")
-    use_mail_parser = mail_parser.add_mutually_exclusive_group()
-    use_mail_parser.add_argument("--use_mail", action="store_true",
-                                 help=("send error report via system 'mail' command, "
-                                       "requires --to argument"))
-    use_mail_parser.add_argument("--use_smtp", action="store_true",
-                                 help=("send error report via SMTP server, "
-                                       "requires --to and --smtp_config arguments"))
-    mail_parser.add_argument("--to",
-                             help="recipient email address")
-    mail_parser.add_argument("--smtp_config", type=argparse.FileType("r"),
-                             help="SMTP config file, containing SMTP server name, port and sender address")
+    parser.add_argument("--mail", "-m", metavar="TO",
+                        help=("send error report via system 'mail' command to the specified TO address. "
+                              "For connecting to an SMTP server, see --smtp"))
+    parser.add_argument("--smtp", "-s", metavar="CONFIG", type=argparse.FileType("r"),
+                        help=("connect to an SMTP server as specified in the CONFIG file instead of using "
+                              "the system 'mail' command. Requires --mail. The CONFIG file must contain "
+                              "the SMTP server name, port and sender address"))
 
     args = parser.parse_args()
 
     # check parameter dependencies that ArgumentParser cannot express
-    if (args.use_mail or args.use_smtp) and not args.to:
-        raise argparse.ArgumentTypeError("--use_mail and --use_smtp require --to argument")
-    if args.use_smtp and not args.smtp_config:
-        raise argparse.ArgumentTypeError("--use_smtp requires --smtp_config argument")
+    if args.smtp and not args.mail:
+        parser.error("smtp: requires --mail")
 
     # select appropriate log level
     if args.verbose > 3:
@@ -83,6 +64,12 @@ if __name__ == "__main__":
     logging.basicConfig(level=args.loglevel)
     logger = logging.getLogger(__name__)
 
+    # prepare reporting config
+    report_cfg = {
+        "to": args.mail,
+        "email_credentials": yaml.safe_load(args.smtp) if args.smtp else None
+    }
+
     # load configs and add all contained repositories
     repositories = [repository for fp in args.repositories for repository in yaml.safe_load(fp)["repositories"]]
 
@@ -97,13 +84,7 @@ if __name__ == "__main__":
             error_text.append(err.log_content)
 
     # report errors via mail if necessary
-    if error_text and (args.use_mail or args.use_smtp):
-        report_cfg = {
-            "use_mail": args.use_mail,
-            "use_smtp": args.use_smtp,
-            "to": args.to,
-            "email_credentials": yaml.safe_load(args.smtp_config)["email_credentials"] if args.use_smtp else None
-        }
+    if error_text and args.mail:
         send_email(report_cfg, subject="git-sync error occurred", body="\n\n".join(error_text))
 
     # return 1 if an error occurred

@@ -1,8 +1,4 @@
 work_dir: /data
-email_credentials:
-  # path: /secret/.email_credentials.yml
-  use_cmd: true
-  to: hgessner@uni-potsdam.de
 repositories:
   - name: dummy-for-git-sync
     remotes:
