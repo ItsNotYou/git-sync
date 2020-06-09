@@ -29,11 +29,13 @@ def __run_command(args, repo_dir, log):
 
 def git_prepare_repository(remotes, work_dir, log):
     try:
-        os.makedirs(work_dir, exist_ok=False)
-        __run_command("git init", work_dir, log)
-        return all([git_remote_add(index, remote, work_dir, log) for index, remote in enumerate(remotes)])
-    except FileExistsError:
-        return True
+        try:
+            os.makedirs(work_dir, exist_ok=False)
+            __run_command("git init", work_dir, log)
+            return all([git_remote_add(index, remote, work_dir, log) for index, remote in enumerate(remotes)])
+        except FileExistsError:
+            __run_command("git reset --hard", work_dir, log)
+            return True
     except IOError:
         return False
 
