@@ -18,7 +18,7 @@ def parse_arguments():
                                              "  \n"
                                              "  The above examples all use this config.yml structure:\n"
                                              "  \n"
-                                             "  report: optional-address@example.com\n"
+                                             "  mail: optional-address@example.com\n"
                                              "  repositories:\n"
                                              "  - name: some-repository\n"
                                              "    remotes:\n"
@@ -59,15 +59,15 @@ def parse_arguments():
                         help=("connect to an SMTP server as specified in the SMTP file instead of using "
                               "the system 'mail' command. The SMTP file must contain the SMTP server name, port and "
                               "sender address. For more details on the SMTP file structure, see the usage examples "
-                              "below. Requires --mail or 'report' field in configuration files. A --mail parameter "
-                              "always overwrites the 'report' field in a configuration file."))
+                              "below. Requires --mail or 'mail' field in configuration files. A --mail parameter "
+                              "always overwrites the 'mail' field in a configuration file."))
 
     args = parser.parse_args()
 
     # check parameter dependencies that ArgumentParser cannot express
     for repo_cfg in args.repositories:
-        if args.smtp and not args.mail and 'report' not in repo_cfg:
-            parser.error(f"smtp: requires --mail or 'report' field in configuration file")
+        if args.smtp and not args.mail and 'mail' not in repo_cfg:
+            parser.error(f"smtp: requires --mail or 'mail' field in configuration file")
 
     # select appropriate log level
     if args.verbose > 3:
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
         # report errors via mail if necessary
         report_credentials = args.smtp or None
-        report_to = args.mail or (repo_cfg["report"] if "report" in repo_cfg else None)
+        report_to = args.mail or (repo_cfg["mail"] if "mail" in repo_cfg else None)
         if error_text and report_to:
             send_email(report_to,
                        smtp=report_credentials,
