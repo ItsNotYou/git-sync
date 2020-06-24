@@ -10,11 +10,6 @@ import gitsync.arghelp as arghelp
 
 def parse_arguments():
     # prepare command line parser
-    # Christians Vorschläge:
-    #
-    # Hier ist die Frage, ob du eine Logfile verwenden willst, an welche du hinten anhängst:
-    #     -l --log FILE
-    # Das sorgt dafür, dass man auch ohne mail die Ausgaben bekommt
     parser = argparse.ArgumentParser(description="Synchronize Git remotes repositories via pull and push.",
                                      epilog=("usage examples:\n"
                                              "  python git_sync.py -m hgessner@uni-potsdam.de config.yml\n"
@@ -48,6 +43,9 @@ def parse_arguments():
                               "Multiple -v options increase the verbosity, the maximum is 3"))
     parser.add_argument("--workdir", "-w", metavar="WORKING_DIRECTORY", default=path.expanduser("~/git-sync"),
                         help="directory where the local Git repositories are stored, default is '~/git-sync'")
+    parser.add_argument("--log", "-l", metavar="FILE", type=argparse.FileType(mode="w+t"),
+                        help=("log file where all 'git' input and output is written, default is one temporary file "
+                              "per repository per run. git-sync truncates the log file at start"))
     parser.add_argument("repositories", nargs="+", type=arghelp.YamlFileType(),
                         help=("one or more configuration files with Git remote repositories. Each configuration file "
                               "is a YAML file. For more details on the config file structure, see the usage examples "
@@ -93,7 +91,7 @@ if __name__ == "__main__":
         error_text = []
         for repo in repo_cfg["repositories"]:
             try:
-                sync_repository(repo["remotes"], f"{args.workdir}/{repo['name']}")
+                sync_repository(repo["remotes"], f"{args.workdir}/{repo['name']}", git_log=args.log)
             except GitError as err:
                 error = True
                 logger.warning(f"Manual intervention required for {err.repo_dir}, log available at {err.log_path}")

@@ -67,10 +67,19 @@ def git_push(index, remote, work_dir, log):
         return False
 
 
-def sync_repository(remotes, work_dir):
+def sync_repository(remotes, work_dir, git_log=None):
     logger = logging.getLogger(__name__)
-    with tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False) as log:
+
+    # select given or temporary log file
+    if git_log:
+        log = git_log
+    else:
+        log = tempfile.NamedTemporaryFile(mode="w+t", prefix="git-sync-log-", suffix=".txt", delete=False)
+
+    try:
         logger.info(f"Syncing {work_dir}, logging in {log.name}")
+        log_pos = log.tell()
+        log.write(f"= Syncing {work_dir}\n")
 
         # create the local repository if necessary
         prepare_succeeded = git_prepare_repository(remotes, work_dir, log)
@@ -82,8 +91,14 @@ def sync_repository(remotes, work_dir):
         # push to all remotes
         push_succeeded = [git_push(index, remote, work_dir, log) for index, remote in enumerate(remotes)]
 
+        log.write("\n")
+
         # check whether a command went wrong (most probably a failed merge)
         if not prepare_succeeded or not all(pull_succeeded) or not all(push_succeeded):
             log.flush()
-            log.seek(0)
+            log.seek(log_pos)
             raise GitError(work_dir, log.name, log.read())
+    finally:
+        # only close the temporary file
+        if not git_log:
+            log.close()

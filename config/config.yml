@@ -5,3 +5,9 @@ repositories:
     user: hgessner@uni-potsdam.de
   - url: https://git.overleaf.com/5de121e68ea0320001de8252
     user: sfb1294-service@lists.cs.uni-potsdam.de
+- name: dummy-2
+  remotes:
+  - url: https://gitup.uni-potsdam.de/CRC1294/Z03/dummy-for-git-sync.git
+    user: hgessner@uni-potsdam.de
+  - url: https://git.overleaf.com/5de121e68ea0320001de8252
+    user: sfb1294-service@lists.cs.uni-potsdam.de
