@@ -4,27 +4,27 @@ import subprocess
 from email.message import EmailMessage
 
 
-def send_email(email_cfg, subject="", body=""):
-    if email_cfg["email_credentials"]:
-        use_sendmail(email_cfg["email_credentials"], subject, body, email_cfg["to"])
+def send_email(to, smtp=None, subject="", body=""):
+    if smtp:
+        use_sendmail(smtp, subject, body, to)
     else:
-        use_mail(subject, body, email_cfg["to"])
+        use_mail(subject, body, to)
 
 
-def use_sendmail(email_cfg, subject, body, to):
+def use_sendmail(smtp, subject, body, to):
     # compose email
     msg = EmailMessage()
-    msg['From'] = email_cfg["from"]
+    msg['From'] = smtp["from"]
     msg['To'] = to
     msg['Subject'] = subject
     msg.set_content(body)
 
     # create SMTP session
-    s = smtplib.SMTP(email_cfg["host"], email_cfg["port"])
+    s = smtplib.SMTP(smtp["host"], smtp["port"])
     try:
         s.starttls()
-        s.login(email_cfg["user"], email_cfg["password"])
-        s.sendmail(email_cfg["from"], email_cfg["to"], msg)
+        s.login(smtp["user"], smtp["password"])
+        s.sendmail(smtp["from"], smtp["to"], msg)
     finally:
         s.quit()
 
