@@ -67,7 +67,7 @@ def parse_arguments():
     # check parameter dependencies that ArgumentParser cannot express
     for repo_cfg in args.repositories:
         if args.smtp and not args.mail and 'mail' not in repo_cfg:
-            parser.error(f"smtp: requires --mail or 'mail' field in configuration file")
+            parser.error(f"smtp: requires --mail parameter or 'mail' field in configuration file")
 
     # select appropriate log level
     if args.verbose > 3:
