@@ -42,27 +42,34 @@ git-sync uses a command line interface and a configuration file to know what to 
 git-sync expects Git to handle all login data. It will not touch your Git login credentials. If you want to run git-sync without supervision, take a look at https://git-scm.com/docs/git-credential-store to learn how Git manages your login credentials.
 
 ```
-usage: git_sync.py [-h] [--verbose] [--workdir WORKING_DIRECTORY] [--log FILE] [--mail TO] [--smtp SMTP]
+usage: git_sync.py [-h] [--verbose] [--workdir WORKING_DIRECTORY] [--log FILE] [--mail TO]
+                   [--smtp SMTP]
                    repositories [repositories ...]
 
 Synchronize Git remotes repositories via pull and push.
 
 positional arguments:
-  repositories          one or more configuration files with Git remote repositories. Each configuration file is a YAML file. For more
-                        details on the config file structure, see the usage examples below
+  repositories          one or more configuration files with Git remote repositories. Each
+                        configuration file is a YAML file. For more details on the config
+                        file structure, see the usage examples below
 
 optional arguments:
   -h, --help            show this help message and exit
-  --verbose, -v         verbose mode prints progress messages. Multiple -v options increase the verbosity, the maximum is 3
+  --verbose, -v         verbose mode prints progress messages. Multiple -v options increase
+                        the verbosity, the maximum is 3
   --workdir WORKING_DIRECTORY, -w WORKING_DIRECTORY
-                        directory where the local Git repositories are stored, default is '~/git-sync'
-  --log FILE, -l FILE   log file where all 'git' input and output is written, default is one temporary file per repository per run.
-                        git-sync truncates the log file at start
-  --mail TO, -m TO      send error report via system 'mail' command to the specified TO address. For connecting to an SMTP server, see
-                        --smtp
-  --smtp SMTP, -s SMTP  connect to an SMTP server as specified in the SMTP file instead of using the system 'mail' command. The SMTP
-                        file must contain the SMTP server name, port and sender address. For more details on the SMTP file structure,
-                        see the usage examples below. Requires --mail or 'mail' field in configuration files. A --mail parameter always
+                        directory where the local Git repositories are stored, default is
+                        '~/git-sync'
+  --log FILE, -l FILE   log file where all 'git' input and output is written, default is one
+                        temporary file per repository per run. git-sync truncates the log
+                        file at start
+  --mail TO, -m TO      send error report via system 'mail' command to the specified TO
+                        address. For connecting to an SMTP server, see --smtp
+  --smtp SMTP, -s SMTP  connect to an SMTP server as specified in the SMTP file instead of
+                        using the system 'mail' command. The SMTP file must contain the SMTP
+                        server name, port and sender address. For more details on the SMTP
+                        file structure, see the usage examples below. Requires --mail or
+                        'mail' field in configuration files. A --mail parameter always
                         overwrites the 'mail' field in a configuration file.
 
 usage examples:
