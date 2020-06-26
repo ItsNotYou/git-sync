@@ -1,7 +1,7 @@
 # git-sync keeps Git repositories in sync
 git-sync pulls and pushes the latest `master`branch changes between two or more Git repositories. If it runs into a problem, it can send you an email with the repository name and an error report. git-sync supports multiple repositories and different users per repository. The script runs on Windows as well as Linux (and probably macOS, too).
 
-The [CRC 1294 "Data Assimilation"](https://www.sfb1294.de/) developed git-sync as a tool to synchronize Overleaf projects with our institutional GitLab server, but it can be used on any Git repositories. You can run git-sync from your working machine, it doesn't need to be configured at the Git server (like [git-mirror](https://www.ralfj.de/projects/git-mirror/)).
+The [CRC 1294 "Data Assimilation"](https://www.sfb1294.de/) developed git-sync as a tool to synchronize Overleaf projects with our institutional GitLab server, but it can be used on any Git repositories. You can run git-sync from your working machine, it doesn't need to be configured at the Git server (unlike [git-mirror](https://www.ralfj.de/projects/git-mirror/)).
 
 ## What does it do
 git-sync basically runs the following commands.
