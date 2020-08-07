@@ -32,7 +32,7 @@ def use_sendmail(smtp, subject, body, to):
 def use_mail(subject, body, to):
     logger = logging.getLogger(__name__)
     try:
-        process = subprocess.run(["mail", "-s", subject, to], input=body)
+        process = subprocess.run(["mail", "-s", subject, to], input=body.encode("utf-8"))
         if process.returncode != 0:
             logger.error(f"Sending mail via command line failed, error code: {process.returncode}")
     except FileNotFoundError as err:
