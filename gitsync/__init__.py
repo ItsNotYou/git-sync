@@ -19,7 +19,7 @@ def __run_command(args, repo_dir, log):
     if isinstance(args, str):
         args = args.split(" ")
 
-    log.write("> " + " ".join(args) + "\n")
+    log.write("$> " + " ".join(args) + "\n")
     log.flush()
     process = subprocess.run(args, cwd=repo_dir, stdout=log, stderr=log)
     log.write("| Return code: " + str(process.returncode) + "\n")
