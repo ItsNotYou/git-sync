@@ -12,4 +12,4 @@ run image:
   image: henge01/git-sync:latest
   script:
     - echo -e "$GIT_OVERLEAF_CREDENTIALS\n$GIT_GITUP_CREDENTIALS\n" > /secret/.git-credentials
-    - python git_sync.py -vv --workdir /data /config/config.yml
+    - python git_sync.py -vv --workdir /data config/config.yml
