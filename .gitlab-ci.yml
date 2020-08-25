@@ -10,6 +10,10 @@ build image:
 run image:
   stage: deploy
   image: henge01/git-sync:latest
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - data/
   script:
     - echo -e "$GIT_OVERLEAF_CREDENTIALS\n$GIT_GITUP_CREDENTIALS\n" > /secret/.git-credentials
-    - python git_sync.py -vv --workdir /data config/config.yml
+    - python git_sync.py -vv --workdir data config/*.yml
