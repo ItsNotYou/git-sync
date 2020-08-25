@@ -1,4 +1,4 @@
-build image:
+build git-sync:latest:
   stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -6,8 +6,10 @@ build image:
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" | base64)\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination henge01/git-sync:latest --cache=true --cache-repo henge01/git-sync-cache
+  only:
+    - master
 
-run image:
+run git-sync:latest:
   stage: deploy
   image: henge01/git-sync:latest
   cache:
@@ -17,3 +19,5 @@ run image:
   script:
     - echo -e "$GIT_OVERLEAF_CREDENTIALS\n$GIT_GITUP_CREDENTIALS\n" > /secret/.git-credentials
     - python git_sync.py -vv --workdir data config/*.yml
+  only:
+    - schedule
