@@ -51,7 +51,6 @@ def git_prepare_repository(remotes, work_dir, log):
 
 def git_remote_add(index, remote, work_dir, log):
     try:
-        __run_command(f"git config credential.username {remote['user']}", work_dir, log)
         __run_command(f"git remote add {str(index)} {remote['url']}", work_dir, log)
         return True
     except IOError:
@@ -61,6 +60,7 @@ def git_remote_add(index, remote, work_dir, log):
 def git_pull(index, remote, work_dir, log):
     try:
         __run_command(f"git config credential.username {remote['user']}", work_dir, log)
+        __run_command(f"git config user.email {remote['user']}", work_dir, log)
         __run_command(f"git pull --progress {str(index)} master", work_dir, log)
         return True
     except IOError:
@@ -70,6 +70,7 @@ def git_pull(index, remote, work_dir, log):
 def git_push(index, remote, work_dir, log):
     try:
         __run_command(f"git config credential.username {remote['user']}", work_dir, log)
+        __run_command(f"git config user.email {remote['user']}", work_dir, log)
         __run_command(f"git push --progress {str(index)} master", work_dir, log)
         return True
     except IOError:
