@@ -17,7 +17,7 @@ run git-sync:latest:
     paths:
       - data/
   script:
-    - echo -e "$GIT_OVERLEAF_CREDENTIALS\n$GIT_GITUP_CREDENTIALS\n" > /secret/.git-credentials
+    - echo -e "$GIT_OVERLEAF_CREDENTIALS\n$GIT_GITUP_CREDENTIALS" > /secret/.git-credentials
     - python git_sync.py -vvv --ignore-failed-push --workdir data config/*.yml
   only:
     - schedule
