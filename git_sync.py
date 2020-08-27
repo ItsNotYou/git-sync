@@ -94,7 +94,9 @@ if __name__ == "__main__":
         error_text = []
         for repo in repo_cfg["repositories"]:
             try:
-                sync_repository(repo["remotes"], f"{args.workdir}/{repo['name']}", git_log=args.log)
+                sync_repository(repo["remotes"], f"{args.workdir}/{repo['name']}",
+                                git_log=args.log,
+                                ignore_failed_push=args.ignore_failed_push)
             except GitError as err:
                 error = True
                 logger.warning(f"Manual intervention required for {err.repo_dir}, log available at {err.log_path}")
