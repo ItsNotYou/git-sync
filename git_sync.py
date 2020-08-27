@@ -46,6 +46,9 @@ def parse_arguments():
     parser.add_argument("--log", "-l", metavar="FILE", type=argparse.FileType(mode="w+t"),
                         help=("log file where all 'git' input and output is written, default is one temporary file "
                               "per repository per run. git-sync truncates the log file at start"))
+    parser.add_argument("--ignore-failed-push", "-f", action="store_true",
+                        help=("does not create an error if a push fails. Useful if pushes get rejected regularly, "
+                              "e.g. because a repository is actively worked on and receives a new push between pulls"))
     parser.add_argument("repositories", nargs="+", type=arghelp.YamlFileType(),
                         help=("one or more configuration files with Git remote repositories. Each configuration file "
                               "is a YAML file. For more details on the config file structure, see the usage examples "

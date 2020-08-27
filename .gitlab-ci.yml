@@ -18,6 +18,6 @@ run git-sync:latest:
       - data/
   script:
     - echo -e "$GIT_OVERLEAF_CREDENTIALS\n$GIT_GITUP_CREDENTIALS\n" > /secret/.git-credentials
-    - python git_sync.py -vvv --workdir data config/*.yml
+    - python git_sync.py -vvv --ignore-failed-push --workdir data config/*.yml
   only:
     - schedule

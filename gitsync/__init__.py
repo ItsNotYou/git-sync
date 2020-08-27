@@ -19,10 +19,19 @@ def __run_command(args, repo_dir, log):
     if isinstance(args, str):
         args = args.split(" ")
 
+    log_pos = log.tell()
+
+    # execute command and write results to log
     log.write("$> " + " ".join(args) + "\n")
     log.flush()
     process = subprocess.run(args, cwd=repo_dir, stdout=log, stderr=log)
     log.write("| Return code: " + str(process.returncode) + "\n")
+
+    # print log copy to debug logger, but skip last newline
+    log.seek(log_pos)
+    logger = logging.getLogger(__name__)
+    logger.debug(log.read()[:-1])
+
     if process.returncode != 0:
         raise IOError("Command failed")
 
@@ -67,7 +76,7 @@ def git_push(index, remote, work_dir, log):
         return False
 
 
-def sync_repository(remotes, work_dir, git_log=None):
+def sync_repository(remotes, work_dir, git_log=None, ignore_failed_push=False):
     logger = logging.getLogger(__name__)
 
     # select given or temporary log file
@@ -92,10 +101,15 @@ def sync_repository(remotes, work_dir, git_log=None):
         push_succeeded = [git_push(index, remote, work_dir, log) for index, remote in enumerate(remotes)]
 
         log.write("\n")
+        log.flush()
 
-        # check whether a command went wrong (most probably a failed merge)
-        if not prepare_succeeded or not all(pull_succeeded) or not all(push_succeeded):
-            log.flush()
+        logger.debug(f"Prepare succeeded: {prepare_succeeded}")
+        logger.debug(f"Pull succeeded: {all(pull_succeeded)}")
+        logger.debug(f"Push succeeded: {all(push_succeeded)}")
+        logger.debug(f"Ignore failed push: {ignore_failed_push}")
+
+        # check whether a command went wrong (most probably a failed merge or a rejected push)
+        if not prepare_succeeded or not all(pull_succeeded) or (not all(push_succeeded) and not ignore_failed_push):
             log.seek(log_pos)
             raise GitError(work_dir, log.name, log.read())
     finally:
